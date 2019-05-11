@@ -42,6 +42,9 @@
                             </imageView>
                         </subviews>
                     </view>
+                    <connections>
+                        <outlet property="imageView" destination="UYK-qT-Qr1" id="Iue-AI-5KK"/>
+                    </connections>
                 </viewController>
                 <customObject id="rPt-NT-nkU" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
@@ -49,6 +52,6 @@
         </scene>
     </scenes>
     <resources>
-        <image name="pic" width="543" height="505"/>
+        <image name="pic" width="148" height="141"/>
     </resources>
 </document>

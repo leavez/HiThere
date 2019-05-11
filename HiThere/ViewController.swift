@@ -17,15 +17,6 @@ class ViewController: NSViewController {
     }
     
     var settings = Settings()
-
-    lazy private(set) var imageSize: CGSize = {
-        guard let size = NSImage(named: "pic")?.size else {
-            fatalError()
-        }
-        let ratio = size.height / size.width
-        let width: CGFloat = settings.imageWidth
-        return CGSize(width: width, height: width * ratio)
-    }()
     
     var showing = false {
         didSet {
@@ -33,8 +24,15 @@ class ViewController: NSViewController {
                 // Use a delay to make a feeling of 'appeared suddenly'.
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                     
+                    let image = self.showingImage
+                    self.imageView.image = image
+                    
+                    let ratio = image.size.height / image.size.width
+                    let width = self.settings.imageWidth
+                    let height =  width * ratio
+                    
                     let location = NSEvent.mouseLocation
-                    self.view.window?.setFrame(CGRect(x: 0, y: 0, width: self.imageSize.width, height: self.imageSize.height), display: false)
+                    self.view.window?.setFrame(CGRect(x: 0, y: 0, width:width, height:height), display: false)
                     self.moveWindow(position: location)
                 }
             } else {
@@ -46,7 +44,9 @@ class ViewController: NSViewController {
     private var positionHistory: [(p:CGPoint, timestamp:Double)] = []
     
     private let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-
+    
+    @IBOutlet weak var imageView: NSImageView!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -59,6 +59,9 @@ class ViewController: NSViewController {
             autoDisappear.state = self.autoDisappear ? .on : .off
             autoDisappear.target = self
             menu.addItem(autoDisappear)
+            let choseFile = NSMenuItem(title: "Chose image...", action: #selector(ViewController.selectFile), keyEquivalent: "")
+            choseFile.target = self
+            menu.addItem(choseFile)
             menu.addItem(NSMenuItem.separator())
             let item = NSMenuItem(title: "quit", action:#selector(ViewController.quit), keyEquivalent:"q")
             item.target = self
@@ -231,6 +234,26 @@ class ViewController: NSViewController {
     }
     private var autoDisappear: Bool {
         return UserDefaults.standard.object(forKey: "autoDisappearKey") as? Bool ?? true
+    }
+    
+    @objc func selectFile() {
+        let openPanel = NSOpenPanel()
+        openPanel.allowedFileTypes = ["jpg","png"]
+        
+        if openPanel.runModal() == .OK, let fileUrl = openPanel.url {
+            // copy to our place
+            let data = try? Data(contentsOf: fileUrl)
+            UserDefaults.standard.set(data, forKey: "saved_image")
+        }
+    }
+    
+    private var showingImage: NSImage {
+        if let saved = UserDefaults.standard.object(forKey: "saved_image") as? Data ,
+            let image = NSImage(data: saved) {
+            return image
+        } else {
+            return NSImage(named: "pic")!
+        }
     }
     
 }
